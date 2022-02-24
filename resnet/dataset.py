@@ -56,7 +56,7 @@ class Neurobit_data(data.Dataset):
         self.out_w, self.out_h = args.image_width, args.image_height
         self.tfm = transforms.Compose([
                     transforms.ToTensor(),
-                    transforms.Normalize(mean=[0.245], std=[0.197])
+                    transforms.Normalize(mean=[0.298], std=[0.210])
                 ])
         self.data_dir = args.data_dir
         self.mode = mode
@@ -76,15 +76,14 @@ class Neurobit_data(data.Dataset):
     def __getitem__(self, index):
         image = Image.open(self.image_path[index])
 
-        if self.mode == 'valid':
+        if self.mode == 'valid' or self.mode == 'test':
             image = image.crop((120, 50, 520, 350)) # (left, top, right ,bot)
         else:
-            vertical = random.randint(-50,50)
-            horizontal = random.randint(-70,70)
+            vertical = random.randint(-30,30)
+            horizontal = random.randint(-40,40)
             image = image.crop((120+horizontal, 50+vertical, 520+horizontal, 350+vertical))
-        gaze = self.gaze_vector[index]
         
-        return self.tfm(image),  torch.FloatTensor(gaze)
+        return self.tfm(image),  torch.FloatTensor(self.gaze_vector[index])
     
     def __len__(self):
         return len(self.image_path)

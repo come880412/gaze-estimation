@@ -94,7 +94,7 @@ class Neurobit_data(data.Dataset):
         self.tfm = transforms.Compose([
                     transforms.Resize((self.out_h, self.out_w)), # Since the width and the height of cv2 is (height, width)
                     transforms.ToTensor(),
-                    transforms.Normalize(mean=[0.245], std=[0.197])
+                    transforms.Normalize(mean=[0.298], std=[0.210])
                 ])
         self.data_dir = args.data_dir
         self.mode = mode
@@ -120,12 +120,11 @@ class Neurobit_data(data.Dataset):
         if self.mode == 'valid' or self.mode == 'test':
             image = image.crop((120, 50, 520, 350)) # (left, top, right ,bot)
         else:
-            vertical = random.randint(-50,50)
-            horizontal = random.randint(-70,70)
+            vertical = random.randint(-30,30)
+            horizontal = random.randint(-40,40)
             image = image.crop((120+horizontal, 50+vertical, 520+horizontal, 350+vertical))
-        gaze = self.gaze_vector[index]
         
-        return self.tfm(image),  torch.FloatTensor(gaze)
+        return self.tfm(image),  torch.FloatTensor(self.gaze_vector[index])
     
     def __len__(self):
         return len(self.image_path)
@@ -176,7 +175,7 @@ def Dikablis_Norm(data_path='../dataset/TEyeD'): # mean=[0.503], std=[0.224]
     print("normMean = {}".format(means))
     print("normStd = {}".format(stdevs))
 
-def Neurobit_Norm(data_path='../../dataset/neurobit/dataset_nocrop/image'): # mean=[0.245], std=[0.197]
+def Neurobit_Norm(data_path='../../dataset/neurobit/image'): # mean=[0.298], std=[0.210]
     # img_h, img_w = 32, 32
     img_h, img_w = 400, 640   #根据自己数据集适当调整，影响不大
     means, stdevs = [], []
@@ -184,7 +183,7 @@ def Neurobit_Norm(data_path='../../dataset/neurobit/dataset_nocrop/image'): # me
     
     image_name_list = os.listdir(data_path)
     shuffle(image_name_list)
-    image_name_list = image_name_list[:10000]
+    image_name_list = image_name_list[:5000]
     imgs_path_list = []
     for image_name in image_name_list:
         img_path = os.path.join(data_path, image_name)
@@ -219,3 +218,4 @@ def Neurobit_Norm(data_path='../../dataset/neurobit/dataset_nocrop/image'): # me
 if __name__ == '__main__':
     # Dikablis_Norm()
     Neurobit_Norm()
+    # print(torch.normal(0.0, 1.0, size=(1, 3)))
