@@ -46,7 +46,7 @@ def arg_parser():
     ''' Paths '''
     parser.add_argument('--save_root', type=str, default="../../dataset/neurobit")
     parser.add_argument('--data_dir', type=str, default="../../neurobit_data")
-    parser.add_argument('--frame_save_num', type=int, default=210)
+    parser.add_argument('--frame_save_num', type=int, default=150)
 
     ''' Parameters'''
     parser.add_argument('--h', type=float, default=6.8)   
@@ -59,7 +59,6 @@ def arg_parser():
     args = parser.parse_args()
 
     os.makedirs(os.path.join(args.save_root, "image"), exist_ok=True)
-    os.makedirs(os.path.join(args.save_root, "image_test"), exist_ok=True)
 
     return args
 
@@ -70,7 +69,7 @@ def get_yaw_pitch(i, h, w, c, d):
     yaw   = math.atan( (top_left_x + (i%13)  * w) / d) * 180 / math.pi
     return yaw, pitch
 
-def DataPreprocessing(): # length-based
+def DataPreprocessing_length(): # length-based
     args = arg_parser()
 
     Left_files = ['20211210_H14_NSS00000', '20220121_H14_NSS00121']
@@ -89,10 +88,13 @@ def DataPreprocessing(): # length-based
 
     num_file = len(total_file)
     random_index = np.random.choice(num_file, num_file, replace=False)
-    train_index = total_file[random_index[:int(num_file*0.9)]]
+    train_index = total_file[random_index[:int(num_file*0.8)]]
+    valid_index = total_file[random_index[int(num_file*0.8):int(num_file*0.9)]]
+    test_index = total_file[random_index[int(num_file*0.9):]]
 
     train_data = [['image_name, yaw, pitch']]
     valid_data = [['image_name, yaw, pitch']]
+    test_data = [['image_name, yaw, pitch']]
     image_idx = 0
 
     broken_video = ['20220121_160001_H14_NSS00122_Test1.mp4', '20220121_160007_H14_NSS00122_Test1.mp4', '20220121_160140_H14_NSS00122_Test1.mp4', 
@@ -119,16 +121,19 @@ def DataPreprocessing(): # length-based
             while(success):
                 success, frame = video.read() # only take the first frame (or the dataset will be too big)
                 if(not success or image_count == args.frame_save_num): break
-                im = frame[L_top:L_bot, L_left:L_right, :]
-                im = Image.fromarray(im)
-                im.save(os.path.join(args.save_root, "image", f'{str(image_idx).zfill(7)}.png'))
-                
-                if video_name in train_index:
-                    train_data.append([f'{str(image_idx).zfill(7)}.png, {str(yaw)},{str(pitch)}'])
-                else:
-                    valid_data.append([f'{str(image_idx).zfill(7)}.png, {str(yaw)},{str(pitch)}'])
+                if image_count >=30:
+                    # im = frame[L_top:L_bot, L_left:L_right, :]
+                    # im = Image.fromarray(im)
+                    # im.save(os.path.join(args.save_root, "image", f'{str(image_idx).zfill(7)}.png'))
+                    
+                    if video_name in train_index:
+                        train_data.append([f'{str(image_idx).zfill(7)}.png, {str(yaw)},{str(pitch)}'])
+                    elif video_name in valid_index:
+                        valid_data.append([f'{str(image_idx).zfill(7)}.png, {str(yaw)},{str(pitch)}'])
+                    else:
+                        test_data.append([f'{str(image_idx).zfill(7)}.png, {str(yaw)},{str(pitch)}'])
 
-                image_idx += 1
+                    image_idx += 1
                 image_count += 1
 
     # # right eyes
@@ -153,21 +158,24 @@ def DataPreprocessing(): # length-based
             while(success):
                 success, frame = video.read() # only take the first frame (or the dataset will be too big)
                 if(not success or image_count == args.frame_save_num): break
-                im = frame[R_top:R_bot, R_left:R_right, :]
-                im = Image.fromarray(im)
-                im.save(os.path.join(args.save_root, "image", f'{str(image_idx).zfill(7)}.png'))
-            
-                if video_name in train_index:
-                    train_data.append([f'{str(image_idx).zfill(7)}.png, {str(yaw)},{str(pitch)}'])
-                else:
-                    valid_data.append([f'{str(image_idx).zfill(7)}.png, {str(yaw)},{str(pitch)}'])
+                if image_count >=30:
+                    im = frame[R_top:R_bot, R_left:R_right, :]
+                    im = Image.fromarray(im)
+                    im.save(os.path.join(args.save_root, "image", f'{str(image_idx).zfill(7)}.png'))
+                
+                    if video_name in train_index:
+                        train_data.append([f'{str(image_idx).zfill(7)}.png, {str(yaw)},{str(pitch)}'])
+                    elif video_name in valid_index:
+                        valid_data.append([f'{str(image_idx).zfill(7)}.png, {str(yaw)},{str(pitch)}'])
+                    else:
+                        test_data.append([f'{str(image_idx).zfill(7)}.png, {str(yaw)},{str(pitch)}'])
 
-                image_idx += 1
+                    image_idx += 1
                 image_count += 1
-    np.savetxt(os.path.join(args.save_root, 'train.txt'),  train_data, fmt='%s', delimiter=',')
-    np.savetxt(os.path.join(args.save_root, 'valid.txt'),  valid_data, fmt='%s', delimiter=',')
 
-def DataPreprocessing_old(): # angle-based
+    return train_data, valid_data, test_data, image_idx
+
+def DataPreprocessing_angle(train_data, valid_data, test_data, image_idx): # angle-based
     args = arg_parser()
 
     Left_files = '20211203_H14_NSS00000'
@@ -180,12 +188,23 @@ def DataPreprocessing_old(): # angle-based
     Left_dir = os.path.join(args.data_dir, Left_files)
     Right_dir = os.path.join(args.data_dir, Right_files)
 
-    test_data = []
+    # Data_split 
+    total_files = [Left_files, Right_files]
+    total_file = []
+    for i in range(len(total_files)):
+        total_file += os.listdir(os.path.join(args.data_dir, total_files[i]))
+    total_file = np.array(total_file)
+
+    num_file = len(total_file)
+    random_index = np.random.choice(num_file, num_file, replace=False)
+    train_index = total_file[random_index[:int(num_file*0.8)]]
+    valid_index = total_file[random_index[int(num_file*0.8):int(num_file*0.9)]]
+    test_index = total_file[random_index[int(num_file*0.9):]]
+
     # left eyes
     video_files = sorted(os.listdir(Left_dir))
     assert(len(video_files) == 9*13)
 
-    image_idx = 0
     for i, video_name in enumerate(tqdm(video_files)): # each dir represents
         video_path = os.path.join(Left_dir, video_name)
         yaw, pitch = -30 + (i%13) * 5, 20 - (i//13) * 5 # angle-based label
@@ -196,12 +215,18 @@ def DataPreprocessing_old(): # angle-based
         while(success):
             success, frame = video.read() # only take the first frame (or the dataset will be too big)
             if(not success or image_count == args.frame_save_num): break
-            im = frame[L_top:L_bot, L_left:L_right, :]
-            im = Image.fromarray(im)
-            im.save(os.path.join(args.save_root, "image", f'{str(image_idx).zfill(7)}.png'))
+            if image_count >=30:
+                im = frame[L_top:L_bot, L_left:L_right, :]
+                im = Image.fromarray(im)
+                im.save(os.path.join(args.save_root, "image", f'{str(image_idx).zfill(7)}.png'))
 
-            test_data.append([f'{str(image_idx).zfill(7)}.png, {str(yaw)},{str(pitch)}'])
-            image_idx += 1
+                if video_name in train_index:
+                    train_data.append([f'{str(image_idx).zfill(7)}.png, {str(yaw)},{str(pitch)}'])
+                elif video_name in valid_index:
+                    valid_data.append([f'{str(image_idx).zfill(7)}.png, {str(yaw)},{str(pitch)}'])
+                else:
+                    test_data.append([f'{str(image_idx).zfill(7)}.png, {str(yaw)},{str(pitch)}'])
+                image_idx += 1
             image_count += 1
 
     # # right eyes
@@ -218,18 +243,34 @@ def DataPreprocessing_old(): # angle-based
         while(success):
             success, frame = video.read() # only take the first frame (or the dataset will be too big)
             if(not success or image_count == args.frame_save_num): break
-            im = frame[R_top:R_bot, R_left:R_right, :]
-            im = Image.fromarray(im)
-            im.save(os.path.join(args.save_root, "image_test", f'{str(image_idx).zfill(7)}.png'))
-        
-            test_data.append([f'{str(image_idx).zfill(7)}.png, {str(yaw)},{str(pitch)}'])
+            if image_count >=30:
+                im = frame[R_top:R_bot, R_left:R_right, :]
+                im = Image.fromarray(im)
+                im.save(os.path.join(args.save_root, "image", f'{str(image_idx).zfill(7)}.png'))
+            
+                if video_name in train_index:
+                    train_data.append([f'{str(image_idx).zfill(7)}.png, {str(yaw)},{str(pitch)}'])
+                elif video_name in valid_index:
+                    valid_data.append([f'{str(image_idx).zfill(7)}.png, {str(yaw)},{str(pitch)}'])
+                else:
+                    test_data.append([f'{str(image_idx).zfill(7)}.png, {str(yaw)},{str(pitch)}'])
 
-            image_idx += 1
+                image_idx += 1
             image_count += 1
+    np.savetxt(os.path.join(args.save_root, 'train.txt'),  train_data, fmt='%s', delimiter=',')
+    np.savetxt(os.path.join(args.save_root, 'valid.txt'),  valid_data, fmt='%s', delimiter=',')
     np.savetxt(os.path.join(args.save_root, 'test.txt'),  test_data, fmt='%s', delimiter=',')
+
+    return train_data, valid_data, test_data
 
 if __name__ == "__main__":
     random.seed(2022)
     np.random.seed(2022)
-    DataPreprocessing()
-    DataPreprocessing_old()
+    train_data, valid_data, test_data, image_idx = DataPreprocessing_length()
+    DataPreprocessing_angle(train_data, valid_data, test_data, image_idx)
+
+    print('------ Statistics ---------')
+    print('Training data: ', len(train_data))
+    print('Validation data: ', len(valid_data))
+    print('Testing data: ', len(test_data))
+    print('---------------------------')
