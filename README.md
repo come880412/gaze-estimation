@@ -10,5 +10,3 @@ $ python Dikablis_preprocess.py
 
 1. https://github.com/david-wb/gaze-estimation
 2. https://ait.ethz.ch/projects/2018/landmarks-gaze/downloads/park2018etra.pdf
-3. https://arxiv.org/pdf/2105.14424v1.pdf
-4. https://github.com/yihuacheng/GazeTR
