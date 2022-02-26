@@ -116,15 +116,15 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     ''' Paths '''
     # parser.add_argument('--data_dir', type=str, default="/home/brianw0924/hdd/TEyeD")
-    parser.add_argument('--data_dir', type=str, default="../neurobit/dataset_nocrop")
+    parser.add_argument('--data_dir', type=str, default="../../dataset/neurobit")
     parser.add_argument('--dataset', type=str, default="neurobit", choices=["neurobit", "TEyeD"]) # if you set Neurobit, will do random cropping
-    parser.add_argument('--saved_model', type=str, default='./checkpoints/gaze_model')
+    parser.add_argument('--saved_model', type=str, default='./checkpoints/resnet18_alldata')
     parser.add_argument('--load', type=str, default='')
-    parser.add_argument('--model', type=str, default='resnext50', help='resnet18/resnext50')
+    parser.add_argument('--model', type=str, default='resnet18', help='resnet18/resnext50')
 
     ''' paramters '''
-    parser.add_argument('--image_width', type=int, default=640, help='Image width')
-    parser.add_argument('--image_height', type=int, default=400, help='Image height')
+    parser.add_argument('--image_width', type=int, default=400, help='Image width')
+    parser.add_argument('--image_height', type=int, default=300, help='Image height')
     parser.add_argument('--warm_up', type=int, default=1000, help='Warmup step')
     parser.add_argument('--decay_step', type=int, default=15000, help='')
     parser.add_argument('--decay', type=float, default=0.5, help='')

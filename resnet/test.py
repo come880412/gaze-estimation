@@ -12,8 +12,8 @@ import torchvision.models as models
 import warnings
 warnings.filterwarnings("ignore")
 
-def test(args, model, test_loader):
-    pbar = tqdm.tqdm(total=len(test_loader), ncols=0, desc="Valid", unit=" step")
+def test(args, model, test_loader, mode):
+    pbar = tqdm.tqdm(total=len(test_loader), ncols=0, desc="%s" % mode, unit=" step")
     criterion = nn.MSELoss(reduction='none')
 
     total_loss = 0
@@ -47,8 +47,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     ''' Paths '''
     # parser.add_argument('--data_dir', type=str, default="/home/brianw0924/hdd/TEyeD")
-    parser.add_argument('--data_dir', type=str, default="../../dataset/neurobit")
-    parser.add_argument('--load', type=str, default='./checkpoints/gaze_model_400_300_resnext50/model_best2.2359.pth')
+    parser.add_argument('--data_dir', type=str, default="../../dataset/neurobit_2")
+    parser.add_argument('--load', type=str, default='./checkpoints/resnet18_alldata/model_2.2087.pth')
     parser.add_argument('--mode', type=str, default='test', help='valid/test')
 
     ''' paramters '''
@@ -59,10 +59,10 @@ if __name__ == '__main__':
     Set_seed(args.seed)
 
     test_data = Neurobit_data(args, args.mode)
-    test_loader = DataLoader(test_data, batch_size=128, num_workers=4, drop_last=False, shuffle=False)
+    test_loader = DataLoader(test_data, batch_size=4, num_workers=4, drop_last=False, shuffle=True)
     
-    # model = models.resnet18(pretrained=True)
-    model = models.resnext50_32x4d(pretrained=True)
+    model = models.resnet18(pretrained=True)
+    # model = models.resnext50_32x4d(pretrained=True)
     model.fc = nn.Linear(model.fc.in_features, 2)
     if args.load:
         print('Load model!!')
@@ -70,7 +70,7 @@ if __name__ == '__main__':
     model.eval()
     model = model.cuda()
     
-    test(args, model, test_loader)
+    test(args, model, test_loader, args.mode)
 
 
     

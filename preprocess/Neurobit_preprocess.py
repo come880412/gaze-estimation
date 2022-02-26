@@ -44,9 +44,9 @@ def arg_parser():
     parser = argparse.ArgumentParser()
 
     ''' Paths '''
-    parser.add_argument('--save_root', type=str, default="../../dataset/neurobit")
+    parser.add_argument('--save_root', type=str, default="../../dataset/neurobit_2")
     parser.add_argument('--data_dir', type=str, default="../../neurobit_data")
-    parser.add_argument('--frame_save_num', type=int, default=150)
+    parser.add_argument('--frame_save_num', type=int, default=180)
 
     ''' Parameters'''
     parser.add_argument('--h', type=float, default=6.8)   
@@ -72,8 +72,8 @@ def get_yaw_pitch(i, h, w, c, d):
 def DataPreprocessing_length(): # length-based
     args = arg_parser()
 
-    Left_files = ['20211210_H14_NSS00000', '20220121_H14_NSS00121']
-    Right_files = ['20211210_H14_NSS11111', '20220121_H14_NSS00122']
+    Left_files = ['20211210_H14_NSS00000', '20220121_H14_NSS00121', '20220224_H14_NSS00001']
+    Right_files = ['20211210_H14_NSS11111', '20220121_H14_NSS00122', '20220224_H14_NSS00002']
 
     ''' parametrers '''
     L_top, L_bot, L_left, L_right = args.Lefteye_ROI[0], args.Lefteye_ROI[1], args.Lefteye_ROI[2], args.Lefteye_ROI[3]
@@ -122,9 +122,9 @@ def DataPreprocessing_length(): # length-based
                 success, frame = video.read() # only take the first frame (or the dataset will be too big)
                 if(not success or image_count == args.frame_save_num): break
                 if image_count >=30:
-                    # im = frame[L_top:L_bot, L_left:L_right, :]
-                    # im = Image.fromarray(im)
-                    # im.save(os.path.join(args.save_root, "image", f'{str(image_idx).zfill(7)}.png'))
+                    im = frame[L_top:L_bot, L_left:L_right, :]
+                    im = Image.fromarray(im)
+                    im.save(os.path.join(args.save_root, "image", f'{str(image_idx).zfill(7)}.png'))
                     
                     if video_name in train_index:
                         train_data.append([f'{str(image_idx).zfill(7)}.png, {str(yaw)},{str(pitch)}'])

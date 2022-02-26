@@ -138,10 +138,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     ''' Paths '''
     # parser.add_argument('--data_dir', type=str, default="/home/brianw0924/hdd/TEyeD")
-    parser.add_argument('--data_dir', type=str, default="../../dataset/neurobit/dataset_nocrop")
-    parser.add_argument('--saved_model', type=str, default='./checkpoints/gaze_fine_tune_video_normalization')
+    parser.add_argument('--data_dir', type=str, default="../../dataset/neurobit")
+    parser.add_argument('--saved_model', type=str, default='./checkpoints/gaze_6folders')
     parser.add_argument('--saved_pred', type=str, default='./test_image')
-    parser.add_argument('--load', type=str, default='checkpoints/gaze_landmark_lid_pupil_normalize/model_loss1036.45.pth')
+    parser.add_argument('--load', type=str, default='')
     
     """model parameters"""
     parser.add_argument('--nstack', type=int, default=3)
@@ -152,11 +152,11 @@ if __name__ == '__main__':
     parser.add_argument('--image_width', type=int, default=192, help='Image width')
     parser.add_argument('--image_height', type=int, default=144, help='Image height')
     parser.add_argument('--seed', type=int, default=17)
-    parser.add_argument('--total_steps', type=int, default=100000)
+    parser.add_argument('--total_steps', type=int, default=80000)
     parser.add_argument('--decay_steps', type=int, default=5000)
     parser.add_argument('--num_workers', type=int, default=4)
     parser.add_argument('--batch_size', type=int, default=32)
-    parser.add_argument('--lr', type=float, default=3e-4)
+    parser.add_argument('--lr', type=float, default=5e-4)
     parser.add_argument('--weight_decay', type=float, default=1e-4)
 
     args = parser.parse_args()
@@ -176,6 +176,7 @@ if __name__ == '__main__':
     model = EyeNet(args, nstack=args.nstack, nfeatures=args.nfeatures, nlandmarks=args.nlandmarks).cuda()
 
     if args.load:
+        print('Load pretrained models from: ', args.load)
         model.load_state_dict(torch.load(args.load))
 
     # ct = 0
@@ -185,8 +186,8 @@ if __name__ == '__main__':
     #         for param in child.parameters():
     #             param.requires_grad = False
 
-    # optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
-    optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+    # optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=args.decay_steps, eta_min=1e-4)
 
     main(args, model, train_loader, valid_loader, optimizer, scheduler)

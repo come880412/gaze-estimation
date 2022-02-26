@@ -27,7 +27,7 @@ args.root/
 '''
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--root', type=str, default='../dataset/', help='Root directory')
+parser.add_argument('--root', type=str, default='../../dataset/', help='Root directory')
 parser.add_argument('--fpv', type=int, default=1500, help='How many frame per video you want to store.')
 args = parser.parse_args()
 

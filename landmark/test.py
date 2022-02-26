@@ -149,8 +149,8 @@ def Inference_and_visualization(args, model):
     print('%s | left_yaw: %.4f | left_pitch: %.4f | right_yaw: %.4f | right_pitch: %.4f' 
                 %(file, left_yaw_total / count, left_pitch_total /count, right_yaw_total / count, right_pitch_total / count))
 
-def test(args, model, loader):
-    pbar = tqdm.tqdm(total=len(loader), ncols=0, desc="Valid", unit=" step")
+def test(args, model, loader, mode):
+    pbar = tqdm.tqdm(total=len(loader), ncols=0, desc="%s" % mode, unit=" step")
 
     total_loss = 0
     yaw_total_loss = 0
@@ -197,7 +197,7 @@ if __name__ == '__main__':
     parser.add_argument('--output_video', type=str, default='./test_result')    # output video
     parser.add_argument('--output_csv', type=str, default='./test_csv')         # output csv
     parser.add_argument('--save_pred', type=str, default='./test_image') 
-    parser.add_argument('--load', type=str, default='./checkpoints/gaze_landmark_lid_pupil_normalize/model_loss1036.45.pth')
+    parser.add_argument('--load', type=str, default='./checkpoints/gaze_6folders/model_best.pth')
     parser.add_argument('--mode', type=str, default='test', help='valid/test')
 
     """ data_info """
@@ -228,7 +228,7 @@ if __name__ == '__main__':
     os.makedirs(args.save_pred, exist_ok=True)
     
     dataset = Neurobit_data(args, args.mode)
-    loader = DataLoader(dataset, batch_size=32, num_workers=4, drop_last=False, shuffle=False)
+    loader = DataLoader(dataset, batch_size=128, num_workers=4, drop_last=False, shuffle=False)
 
     model = EyeNet(args, nstack=args.nstack, nfeatures=args.nfeatures, nlandmarks=args.nlandmarks).cuda()
     if args.load:
@@ -238,7 +238,7 @@ if __name__ == '__main__':
     model = model.cuda()
     
     # Inference_and_visualization(args, model)
-    test(args, model, loader)
+    test(args, model, loader, args.mode)
     
 
 
