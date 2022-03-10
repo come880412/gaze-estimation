@@ -82,7 +82,6 @@ def main(args, model, train_loader, valid_loader, optimizer, scheduler):
     for step in range(args.total_steps):
         for param_group in optimizer.param_groups:
             lr = param_group['lr']
-
         try:
             image, gaze = next(train_iterator)
         except StopIteration:

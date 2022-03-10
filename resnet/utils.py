@@ -29,3 +29,24 @@ def vec2angle(gaze):
     pitch = - np.arctan(y/z) * 180 / np.pi
     yaw = - np.arctan(x/z) * 180 / np.pi
     return np.array([pitch, yaw])[np.newaxis,:]
+
+def get_acc(y_pred, y_true, correct, total, threshold=0.9):
+    """ ACC metric
+    y_pred: the predicted score of each class, shape: (Batch_size, num_classes)
+    y_true: the ground truth labels, shape: (Batch_size,) for 'multi-class' or (Batch_size, n_classes) for 'multi-label'
+    """
+    y_pred = y_pred.cpu().detach().numpy()
+    y_true = y_true.cpu().detach().numpy()
+
+    for i in range(y_true.shape[0]):
+        if y_pred[i] >= threshold:
+            pred = 1
+        else:
+            pred = 0
+        label = y_true[i]
+        total[int(label)] += 1
+
+        if pred == label:
+            correct[int(pred)] += 1
+    
+    return correct, total

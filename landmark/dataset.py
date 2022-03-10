@@ -25,7 +25,7 @@ class Dikablis_data(data.Dataset):
         self.tfm = transforms.Compose([
                     transforms.Resize((self.out_h, self.out_w)), # Since the width and the height of cv2 is (height, width)
                     transforms.ToTensor(),
-                    transforms.Normalize(mean=[0.503], std=[0.224])
+                    transforms.Normalize(mean=[0.298], std=[0.210])
                 ])
         
         self.data_dir = args.data_dir

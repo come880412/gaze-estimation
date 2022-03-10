@@ -7,6 +7,8 @@ from tqdm import tqdm
 import pandas as pd
 import argparse
 
+from valid_split import valid_split
+
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -16,14 +18,14 @@ Only process on Dikablis dataset
 output directory tree will looks like this:
 
 args.root/
-        ├─20MioEyeDS/ (Original TEyeD dataset)
-        |   ├─CorruptFilesInZIP/
-        |   └─TEyeDSSingleFiles/
-        |       ├─Dikablis/
-        |       ├─...
-        |       ├─...
+        ├─TEyeDS (Original dataset)
+        |   └─Dikablis
+        |       ├─ANNOTATIONS
+        |       ├─VIDEOS
+        |       ├─Readme.txt
         |
         └─TEyeD/ (Will create this directory automatically)
+        └─TEyeD_valid/ (Will create this directory automatically)
 '''
 
 parser = argparse.ArgumentParser()
@@ -45,6 +47,10 @@ train_val_video = []
 
 tqdm.write(f'Number of videos: {len(video_list)}')
 save_path = os.path.join(root, "TEyeD")
+save_valid_path = os.path.join(root, 'TEyeD_valid', "frame")
+
+os.makedirs(save_valid_path, exist_ok=True)
+valid_count = 0
 
 
 # BROKEN FILE
@@ -81,6 +87,7 @@ for video_name in tqdm(video_list):
     success = True
     source_image_count = 0
     source_image_idx = 0
+
     while(success):
         # OUTPUT DIR
         os.makedirs(os.path.join(save_path, video_name[:-4], "frame"), exist_ok=True)
@@ -98,7 +105,9 @@ for video_name in tqdm(video_list):
         lid_landmark = lid_info[source_image_idx, 2:-1].astype(float)
         pupil_landmark = pupil_info[source_image_idx, 2:-1].astype(float)
         if gaze_vector[0] == -1 and gaze_vector[1] == -1 and gaze_vector[2] == -1: # closed eyes
+            cv2.imwrite(os.path.join(save_valid_path,f'{str(valid_count).zfill(7)}.png'), frame)
             source_image_idx += 1
+            valid_count += 1
             continue
         if sum(iris_landmark<0) >= 1 or sum(lid_landmark<0) >=1 or sum(pupil_landmark<0) >=1: # if landmark is negative
             source_image_idx += 1
@@ -138,3 +147,9 @@ val_video_list = train_val_video[val_index]
 
 np.savetxt(os.path.join(save_path, 'train.txt'),  train_video_list, fmt='%s', delimiter=',')
 np.savetxt(os.path.join(save_path, 'valid.txt'),  val_video_list, fmt='%s', delimiter=',')
+
+print('------Statistics_gaze--------')
+print('num_training data: ', len(train_video_list))
+print('num_validation data: ', len(val_video_list))
+
+valid_split(args.root)
