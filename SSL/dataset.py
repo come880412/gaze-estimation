@@ -44,7 +44,7 @@ class Dikablis_data(data.Dataset):
         self.data_dir = args.data_dir
         self.mode = mode
 
-        video_name_file = np.loadtxt(os.path.join(self.data_dir, '%s.txt' % self.mode), delimiter=';', dtype=np.str)
+        video_name_file = np.loadtxt(os.path.join(self.data_dir, 'TEyeD', '%s.txt' % self.mode), delimiter=';', dtype=np.str)
         
         self.image_path = []
         for video_name in video_name_file:
@@ -54,6 +54,11 @@ class Dikablis_data(data.Dataset):
             for frame_name in image_frame_list:
                 frame_path = os.path.join(image_path, frame_name)
                 self.image_path.append(frame_path)
+        
+        valid_data = os.listdir(os.path.join(self.data_dir, 'TEyeD_valid', 'frame'))
+        for frame_name in valid_data:
+            frame_path = os.path.join(self.data_dir, 'TEyeD_valid', 'frame', frame_name)
+            self.image_path.append(frame_path)
 
     def __getitem__(self, index):
         image = Image.open(self.image_path[index]).convert('RGB')
