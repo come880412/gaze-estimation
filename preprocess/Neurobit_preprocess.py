@@ -44,7 +44,7 @@ def arg_parser():
     parser = argparse.ArgumentParser()
 
     ''' Paths '''
-    parser.add_argument('--save_root', type=str, default="../../dataset/neurobit_2")
+    parser.add_argument('--save_root', type=str, default="../../dataset/neurobit")
     parser.add_argument('--data_dir', type=str, default="../../neurobit_data")
     parser.add_argument('--frame_save_num', type=int, default=180)
 

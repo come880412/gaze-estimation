@@ -123,7 +123,7 @@ if __name__ == '__main__':
     parser.add_argument('--data_dir', type=str, default="../../dataset/neurobit")
     parser.add_argument('--video_dir', type=str, default="../../20211116_H03_NSS40531/20211116_163103_H03_NSS40531_Test1.mp4")
 
-    parser.add_argument('--load', type=str, default='./checkpoints/resnet18_SSL_gaze/model_2.0529.pth')
+    parser.add_argument('--load', type=str, default='./checkpoints/resnet18_SSL_gaze/model_1.9837.pth')
     parser.add_argument('--task', type=str, default='gaze', help='valid/gaze')
     parser.add_argument('--mode', type=str, default='test', help='valid/test')
     parser.add_argument('--threshold', type=float, default=0.5, help='determine whether eyes are open')
@@ -156,8 +156,8 @@ if __name__ == '__main__':
     model = model.cuda()
     
 
-    test_data = Neurobit_data(opt, opt.mode)
-    test_loader = DataLoader(test_data, batch_size=4, num_workers=0, drop_last=False, shuffle=True)
-    visualize_layer(opt, model, test_loader)
+    # test_data = Neurobit_data(opt, opt.mode)
+    # test_loader = DataLoader(test_data, batch_size=4, num_workers=0, drop_last=False, shuffle=True)
+    # visualize_layer(opt, model, test_loader)
 
-    # video_grad_cam(opt, model)
+    video_grad_cam(opt, model)

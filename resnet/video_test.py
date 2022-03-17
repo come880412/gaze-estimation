@@ -59,22 +59,27 @@ def test_video(args, model_gaze, model_valid):
             pred = pred.cpu().detach().numpy()
             left_yaw, left_pitch = str(pred[0][0]), str(pred[0][1])
             right_yaw, right_pitch = str(pred[1][0]), str(pred[1][1])
-        
+
         if valid[0][0] <args.threshold:
-            print('left_eye')
-            cv2.imshow('My Image', left_eye)
+            left_yaw = ''
+            left_pitch = ''
+            # print('left_eye')
+            # cv2.imshow('My Image', np.concatenate((right_eye, left_eye), axis=1))
 
-            # 按下任意鍵則關閉所有視窗
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
+            # # 按下任意鍵則關閉所有視窗
+            # cv2.waitKey(0)
+            # cv2.destroyAllWindows()
         if valid[1][0] < args.threshold:
-            print('right_eye')
-            cv2.imshow('My Image', right_eye)
+            right_yaw = ''
+            right_pitch = ''
+            # print('right_eye')
+            # cv2.imshow('My Image', np.concatenate((right_eye, left_eye), axis=1))
 
-            # 按下任意鍵則關閉所有視窗
-            cv2.waitKey(0)
-            cv2.destroyAllWindows()
-
+            # # 按下任意鍵則關閉所有視窗
+            # cv2.waitKey(0)
+            # cv2.destroyAllWindows()
+        if count % args.fps == 0:
+            print('frame second: ', count // args.fps)
         save_data.append([left_yaw, left_pitch, right_yaw, right_pitch])
     file_name = args.video_dir.split('/')[-1][:-4]
     save_root = os.path.join(args.output_csv, file_name + '.csv')
@@ -86,7 +91,7 @@ if __name__ == '__main__':
     ''' Paths '''
     # parser.add_argument('--data_dir', type=str, default="/home/brianw0924/hdd/TEyeD")
     parser.add_argument('--video_dir', type=str, default="../../20211116_H03_NSS40531/20211116_163103_H03_NSS40531_Test1.mp4")
-    parser.add_argument('--load_gaze', type=str, default='./checkpoints/resnet18_fullimage/model_2.0818.pth')
+    parser.add_argument('--load_gaze', type=str, default='./checkpoints/resnet18_SSL_gaze/model_1.9837.pth')
     parser.add_argument('--load_valid', type=str, default='./checkpoints/resnet18_valid/model_best.pth')
     parser.add_argument('--output_csv', type=str, default='./test_csv')  # output csv
     parser.add_argument('--threshold', type=float, default=0.7, help='determine whether eyes are open')

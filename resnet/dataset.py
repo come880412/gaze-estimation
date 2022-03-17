@@ -15,7 +15,15 @@ class Dikablis_data_valid(data.Dataset):
         self.in_w, self.in_h = 384, 288 # Width and height of Dikablis dataset 
         self.out_w, self.out_h = args.image_width, args.image_height
 
-        self.tfm = transforms.Compose([
+        self.train_tfm = transforms.Compose([
+                    transforms.Resize((self.out_h, self.out_w)), # Since the width and the height of cv2 is (height, width)
+                    transforms.RandomHorizontalFlip(p=0.3),
+                    transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3),
+                    # transforms.GaussianBlur((5, 5), (1.5, 1.5)),
+                    transforms.ToTensor(),
+                    transforms.Normalize(mean=[0.298], std=[0.210])
+                ])
+        self.test_tfm = transforms.Compose([
                     transforms.Resize((self.out_h, self.out_w)), # Since the width and the height of cv2 is (height, width)
                     transforms.ToTensor(),
                     transforms.Normalize(mean=[0.298], std=[0.210])
@@ -30,8 +38,12 @@ class Dikablis_data_valid(data.Dataset):
         image_path, label = self.data_info[index]
         label = np.array(label).astype(np.float)
         image = Image.open(image_path).convert('RGB')
-        
-        return self.tfm(image),  torch.FloatTensor(label)
+        if self.mode == 'valid' or self.mode == 'test':
+            image = self.test_tfm(image)
+        else:
+            image = self.train_tfm(image)
+
+        return image,  torch.FloatTensor(label)
 
     def __len__(self):
         return len(self.data_info)
@@ -44,6 +56,8 @@ class Dikablis_data_gaze(data.Dataset):
 
         self.tfm = transforms.Compose([
                     transforms.Resize((self.out_h, self.out_w)), # Since the width and the height of cv2 is (height, width)
+                    transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3),
+                    # transforms.GaussianBlur((5, 5), (1.5, 1.5)),
                     transforms.ToTensor(),
                     transforms.Normalize(mean=[0.298], std=[0.210])
                 ])
@@ -81,7 +95,13 @@ class Dikablis_data_gaze(data.Dataset):
 class Neurobit_data(data.Dataset):
     def __init__(self, args, mode):
         self.out_w, self.out_h = args.image_width, args.image_height
-        self.tfm = transforms.Compose([
+        self.train_tfm = transforms.Compose([
+                    transforms.Resize((self.out_h, self.out_w)),
+                    transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3),
+                    transforms.ToTensor(),
+                    transforms.Normalize(mean=[0.298], std=[0.210])
+                ])
+        self.test_tfm = transforms.Compose([
                     transforms.Resize((self.out_h, self.out_w)),
                     transforms.ToTensor(),
                     transforms.Normalize(mean=[0.298], std=[0.210])
@@ -105,14 +125,11 @@ class Neurobit_data(data.Dataset):
         image = Image.open(self.image_path[index])
 
         if self.mode == 'valid' or self.mode == 'test':
-            image = self.tfm(image)
+            image = self.test_tfm(image)
         else:
-            # vertical = random.randint(0, 100)
-            # horizontal = random.randint(0, 140)
-            # image = image.crop((horizontal, vertical, 500+horizontal, 300+vertical))
-            image = self.tfm(image)
+            image = self.train_tfm(image)
         
-        return image, torch.FloatTensor(self.gaze_vector[index])
+        return image, torch.FloatTensor(self.gaze_vector[index]), self.image_path[index]
     
     def __len__(self):
         return len(self.image_path)

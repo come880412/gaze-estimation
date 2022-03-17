@@ -36,27 +36,27 @@ def data_augmentation():
 
     os.makedirs('./visual', exist_ok=True)
 
-    img = cv2.imread("0000047.png")
+    img = cv2.imread("0000315.png")
     cv2.imwrite('./visual/ori.jpg', img)
     
-    img = Image.open("0000047.png").convert("RGB")
+    img = Image.open("0000315.png").convert("RGB")
     # img = transforms.RandomResizedCrop((200, 320))(img)
 
-    img10 = transforms.RandomHorizontalFlip()(img)
+    img10 = transforms.RandomHorizontalFlip(p=1)(img)
     img10.save('./visual/Horizontal.jpg')
-
-    imgB = transforms.ColorJitter(brightness=0.8)(img)
+    
+    imgB = transforms.ColorJitter(brightness=0.3)(img)
     imgB.save('./visual/brightness.jpg')
-    imgC = transforms.ColorJitter(contrast=0.8)(img)
+    imgC = transforms.ColorJitter(contrast=0.3)(img)
     imgC.save('./visual/contrast.jpg')
-    imgS = transforms.ColorJitter(saturation=0.8)(img)
+    imgS = transforms.ColorJitter(saturation=0.3)(img)
     imgS.save('./visual/saturation.jpg')
     imgH = transforms.ColorJitter(hue=0)(img)
     imgH.save('./visual/hue.jpg')
-    imgall = transforms.ColorJitter(brightness=0.8, contrast=0.8, saturation=0.8, hue=0)(img)
+    imgall = transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.3, hue=0)(img)
     imgall.save('./visual/ColorJitter.jpg')
 
-    img_gaussian = transforms.GaussianBlur((3, 3), (1.5, 1.5))(img)
+    img_gaussian = transforms.GaussianBlur((5, 5), (1.5, 1.5))(img)
     img_gaussian.save('./visual/gaussian.jpg')
 
     img_solor = Solarization(1)(img)
