@@ -1,10 +1,17 @@
 # Gaze Estimation with Deep Learning
 
-# Data preprocessing (TEyeD dataset)
-Put TEyeD dataset directory at ```../dataset```. The preprocessed data will be under ```../dataset/TEyeD```
+# Data preprocessing
+Put TEyeD dataset directory at ```../dataset```. The preprocessed data will be created under ```../dataset/TEyeD``` automatically.
 ```bash
 $ python Dikablis_preprocess.py
 ```
+
+Put Neurobit dataset directory at ```../neurobit_data```. The preprocessed data will be created under ```../dataset/neurobit``` automatically.
+```bash
+$ python Neurobit_preprocess.py
+```
+
+
 
 ### References
 
