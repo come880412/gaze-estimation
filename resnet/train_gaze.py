@@ -8,7 +8,9 @@ from torch.utils.data import DataLoader
 import torch.optim as optim
 
 from utils import *
-from dataset import Dikablis_data_gaze, Neurobit_data
+from unet import UNet
+from unet import parameters
+from dataset import Dikablis_data_gaze, Neurobit_data_gaze
 import torchvision.models as models
 
 import warnings
@@ -25,7 +27,7 @@ def valid(args, model, valid_loader, step):
     total_num_image = 0
     criterion = nn.MSELoss(reduction='none')
     with torch.no_grad():
-        for idx, (image, gaze) in enumerate(valid_loader):
+        for idx, (image, gaze, _) in enumerate(valid_loader):
             image = image.cuda()
             gaze = gaze.cuda()
 
@@ -73,7 +75,7 @@ def train(image, gaze, model, optimizer):
 
 def main(args, model, train_loader, valid_loader, optimizer, scheduler):
 
-    save_name = os.path.join(args.saved_model, 'model_best.pth')
+    save_name = os.path.join(args.saved_model, 'model_crop.pth')
     print('start tarining...')
 
     min_loss = 100000000000000000
@@ -84,10 +86,10 @@ def main(args, model, train_loader, valid_loader, optimizer, scheduler):
             lr = param_group['lr']
 
         try:
-            image, gaze = next(train_iterator)
+            image, gaze, _ = next(train_iterator)
         except StopIteration:
             train_iterator = iter(train_loader)
-            image, gaze = next(train_iterator)
+            image, gaze, _ = next(train_iterator)
 
         train_loss, yaw_loss, pitch_loss = train(image, gaze, model, optimizer)
 
@@ -117,23 +119,23 @@ if __name__ == '__main__':
     ''' Paths '''
     # parser.add_argument('--data_dir', type=str, default="/home/brianw0924/hdd/TEyeD")
     parser.add_argument('--data_dir', type=str, default="../../dataset/neurobit")
-    parser.add_argument('--dataset', type=str, default="neurobit", choices=["neurobit", "TEyeD"]) # if you set Neurobit, will do random cropping
+    parser.add_argument('--dataset', type=str, default="neurobit", choices=["neurobit", "TEyeD"])
     parser.add_argument('--saved_model', type=str, default='./checkpoints/resnet18_SSL_gaze')
-    parser.add_argument('--load', type=str, default='./checkpoints/resnet18_SSL_gaze/model_2.0529.pth')
+    parser.add_argument('--load', type=str, default='./checkpoints/SSL_pretrained.pth')
     parser.add_argument('--model', type=str, default='resnet18', help='resnet18/resnext50')
 
     ''' paramters '''
-    parser.add_argument('--image_width', type=int, default=640, help='Image width')
-    parser.add_argument('--image_height', type=int, default=400, help='Image height')
+    parser.add_argument('--image_width', type=int, default=320, help='Image width')
+    parser.add_argument('--image_height', type=int, default=200, help='Image height')
     parser.add_argument('--warm_up', type=int, default=1000, help='Warmup step')
     parser.add_argument('--decay_step', type=int, default=15000, help='')
     parser.add_argument('--decay', type=float, default=0.5, help='')
-    parser.add_argument('--seed', type=int, default=17)
-    parser.add_argument('--total_steps', type=int, default=70000)
+    parser.add_argument('--seed', type=int, default=2022)
+    parser.add_argument('--total_steps', type=int, default=60000)
     
     parser.add_argument('--num_workers', type=int, default=4)
-    parser.add_argument('--batch_size', type=int, default=48)
-    parser.add_argument('--lr', type=float, default=1e-3)
+    parser.add_argument('--batch_size', type=int, default=64)
+    parser.add_argument('--lr', type=float, default=7e-4)
 
     args = parser.parse_args()
     os.makedirs(args.saved_model, exist_ok=True)
@@ -143,8 +145,8 @@ if __name__ == '__main__':
         train_data = Dikablis_data_gaze(args, 'train')
         valid_data = Dikablis_data_gaze(args, 'valid')
     elif args.dataset == 'neurobit':
-        train_data = Neurobit_data(args, 'train')
-        valid_data = Neurobit_data(args, 'valid')
+        train_data = Neurobit_data_gaze(args, 'train')
+        valid_data = Neurobit_data_gaze(args, 'valid')
 
     train_loader = DataLoader(train_data, batch_size=args.batch_size, num_workers=args.num_workers, drop_last=True, shuffle=True)
     valid_loader = DataLoader(valid_data, batch_size=args.batch_size, num_workers=args.num_workers, drop_last=False, shuffle=False)
@@ -162,8 +164,8 @@ if __name__ == '__main__':
         print('Load pretrained model from: ', args.load)
         model.load_state_dict(torch.load(args.load))
         
-    # optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
-    optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)
+    # optimizer = torch.optim.Adam(model.parameters(), lr=args.lr, weight_decay=3e-4)
+    optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9, weight_decay=1e-4)
     scheduler = optim.lr_scheduler.CosineAnnealingLR( 
                     optimizer, 
                     T_max= args.total_steps,

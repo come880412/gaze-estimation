@@ -51,7 +51,7 @@ if __name__ == '__main__':
     # parser.add_argument('--data_dir', type=str, default="/home/brianw0924/hdd/TEyeD")
     parser.add_argument('--data_dir', type=str, default="../../dataset/TEyeD_valid")
     parser.add_argument('--load', type=str, default='./checkpoints/resnet18_valid_SSL/model_best.pth')
-    parser.add_argument('--mode', type=str, default='valid', help='valid/test')
+    parser.add_argument('--mode', type=str, default='test', help='valid/test')
 
     ''' paramters '''
     parser.add_argument('--image_width', type=int, default=320, help='Image width')
@@ -73,3 +73,8 @@ if __name__ == '__main__':
     model = model.cuda()
     
     test(args, model, test_loader, args.mode)
+
+
+    
+
+

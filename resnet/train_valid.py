@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 import torch.optim as optim
 
 from utils import *
-from dataset import Dikablis_data_valid
+from dataset import Dikablis_data_valid, Neurobit_data_valid
 import torchvision.models as models
 
 import warnings
@@ -111,28 +111,33 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     ''' Paths '''
     # parser.add_argument('--data_dir', type=str, default="/home/brianw0924/hdd/TEyeD")
-    parser.add_argument('--data_dir', type=str, default="../../dataset/TEyeD_valid")
+    parser.add_argument('--data_dir', type=str, default="../../dataset/neurobit_valid", help='neurobit_valid/TEyeD_valid')
+    parser.add_argument('--dataset', type=str, default="neurobit", choices=["neurobit", "TEyeD"])
     parser.add_argument('--saved_model', type=str, default='./checkpoints/resnet18_valid_SSL')
-    parser.add_argument('--load', type=str, default='./checkpoints/SSL_pretrained.pth')
+    parser.add_argument('--load', type=str, default='./checkpoints/resnet18_valid_SSL/TEyeD_pretrained.pth')
     parser.add_argument('--model', type=str, default='resnet18', help='resnet18/resnext50')
 
     ''' paramters '''
     parser.add_argument('--image_width', type=int, default=320, help='Image width')
     parser.add_argument('--image_height', type=int, default=200, help='Image height')
-    parser.add_argument('--n_epochs', type=int, default=50, help='number of epochs')
+    parser.add_argument('--n_epochs', type=int, default=20, help='number of epochs')
     parser.add_argument('--threshold', type=float, default=0.5, help='determine whether eyes are open')
     parser.add_argument('--seed', type=int, default=17)
     
     parser.add_argument('--num_workers', type=int, default=4)
-    parser.add_argument('--batch_size', type=int, default=64)
-    parser.add_argument('--lr', type=float, default=1e-3)
+    parser.add_argument('--batch_size', type=int, default=32)
+    parser.add_argument('--lr', type=float, default=5e-4)
 
     args = parser.parse_args()
     os.makedirs(args.saved_model, exist_ok=True)
     Set_seed(args.seed)
     
-    train_data = Dikablis_data_valid(args, 'train')
-    valid_data = Dikablis_data_valid(args, 'valid')
+    if args.dataset == 'TEyeD':
+        train_data = Dikablis_data_valid(args, 'train')
+        valid_data = Dikablis_data_valid(args, 'valid')
+    elif args.dataset == 'neurobit':
+        train_data = Neurobit_data_valid(args, 'train')
+        valid_data = Neurobit_data_valid(args, 'valid')
 
     train_loader = DataLoader(train_data, batch_size=args.batch_size, num_workers=args.num_workers, drop_last=True, shuffle=True)
     valid_loader = DataLoader(valid_data, batch_size=args.batch_size, num_workers=args.num_workers, drop_last=False, shuffle=False)
@@ -145,10 +150,12 @@ if __name__ == '__main__':
     elif args.model == 'resnet18':
         model = models.resnet18(pretrained=True)
         model.fc = nn.Linear(model.fc.in_features, 2)
-
+    
+    model.fc = nn.Linear(model.fc.in_features, 1)
     if args.load:
         model.load_state_dict(torch.load(args.load))
-    model.fc = nn.Linear(model.fc.in_features, 1)
+    
+    
         
     # optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
     optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, momentum=0.9)

@@ -21,7 +21,7 @@ def test(args, model, test_loader, mode):
     pitch_total_loss = 0
     total_num_image = 0
     with torch.no_grad():
-        for image, gaze in test_loader:
+        for image, gaze, _ in test_loader:
             image = image.float().cuda()
             gaze = gaze.cuda() # (yaw, pitch)
 
@@ -48,8 +48,8 @@ if __name__ == '__main__':
     ''' Paths '''
     # parser.add_argument('--data_dir', type=str, default="/home/brianw0924/hdd/TEyeD")
     parser.add_argument('--data_dir', type=str, default="../../dataset/neurobit")
-    parser.add_argument('--load', type=str, default='./checkpoints/resnet18_SSL_gaze/model_2.0529.pth')
-    parser.add_argument('--mode', type=str, default='valid', help='valid/test')
+    parser.add_argument('--load', type=str, default='./checkpoints/resnet18_SSL_gaze/model_best.pth')
+    parser.add_argument('--mode', type=str, default='test', help='valid/test')
 
     ''' paramters '''
     parser.add_argument('--image_width', type=int, default=320, help='Image width')

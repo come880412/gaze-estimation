@@ -1,3 +1,9 @@
+'''
+Modified Date: 2022/01/11
+Author: Gi-Luen Huang
+mail: come880412@gmail.com
+'''
+
 import os
 import torchvision.models as models
 from pytorch_grad_cam import GradCAM
@@ -156,8 +162,8 @@ if __name__ == '__main__':
     model = model.cuda()
     
 
-    # test_data = Neurobit_data(opt, opt.mode)
-    # test_loader = DataLoader(test_data, batch_size=4, num_workers=0, drop_last=False, shuffle=True)
-    # visualize_layer(opt, model, test_loader)
+    test_data = Neurobit_data(opt, opt.mode)
+    test_loader = DataLoader(test_data, batch_size=4, num_workers=0, drop_last=False, shuffle=True)
+    visualize_layer(opt, model, test_loader)
 
-    video_grad_cam(opt, model)
+    # video_grad_cam(opt, model)
